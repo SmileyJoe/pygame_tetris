@@ -1,0 +1,1 @@
+BLOCK_WIDTH = 20
