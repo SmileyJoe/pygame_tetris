@@ -6,11 +6,9 @@ from constants import BLOCK_WIDTH
 
 pygame.init()
 BORDER = 2
-board_start = BLOCK_WIDTH*BORDER + (BLOCK_WIDTH*4)
-width = (Board.BOARD_WIDTH*BLOCK_WIDTH) + (BLOCK_WIDTH*BORDER) + (BLOCK_WIDTH*4) + board_start
-height = (Board.BOARD_HEIGHT*BLOCK_WIDTH) + (BLOCK_WIDTH*BORDER*2)
-hold_position = [2, 1]
-next_position = [17, 1]
+board_start = BLOCK_WIDTH * BORDER + (BLOCK_WIDTH * 4)
+width = (Board.BOARD_WIDTH * BLOCK_WIDTH) + (BLOCK_WIDTH * BORDER) + (BLOCK_WIDTH * 4) + board_start
+height = (Board.BOARD_HEIGHT * BLOCK_WIDTH) + (BLOCK_WIDTH * BORDER * 2)
 
 refresh_board = True
 
@@ -22,7 +20,7 @@ board.speed = 1
 
 while True:
     screen.fill(BLACK)
-    
+
     if not board.game_over:
         for event in pygame.event.get():
             if event.type == pygame.K_o:
@@ -35,7 +33,7 @@ while True:
                 if event.key == pygame.K_q:
                     board.move_tetromino(Board.ROTATE)
                 if event.key == pygame.K_w:
-                    board.hold(hold_position)
+                    board.hold()
                 if event.key == pygame.K_1:
                     board.speed = 1
                 if event.key == pygame.K_2:
@@ -59,5 +57,5 @@ while True:
         board.changed_rects = []
 
     # else:
-        # todo: show scores, retry/quit
-    time.sleep((1000/board.speed)/1000)
+    # todo: show scores, retry/quit
+    time.sleep((1000 / board.speed) / 1000)

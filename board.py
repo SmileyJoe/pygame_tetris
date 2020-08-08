@@ -4,10 +4,10 @@ from tetromino import Tetromino
 from constants import BLOCK_WIDTH
 from color import WHITE
 import copy
+from pprint import pprint
 
 
 class Board:
-
     DIRECTION_DOWN = 1
     DIRECTION_LEFT = 2
     DIRECTION_RIGHT = 3
@@ -15,13 +15,14 @@ class Board:
     BOARD_WIDTH = 10
     BOARD_HEIGHT = 20
 
-    __height = BLOCK_WIDTH*BOARD_HEIGHT
-    __width = BLOCK_WIDTH*BOARD_WIDTH
+    __height = BLOCK_WIDTH * BOARD_HEIGHT
+    __width = BLOCK_WIDTH * BOARD_WIDTH
     __start_x = 0
     __screen = None
     __tetromino = None
     __tetromino_hold = None
     __tetrominos_upcoming = []
+    __tetromino_next = None
     __wall_left = None
     __wall_right = None
     __wall_bottom = None
@@ -30,6 +31,8 @@ class Board:
     __game_over = False
     __starting_position = [10, 0]
     __can_hold = True
+    __hold_position = [2, 1]
+    __next_position = [17, 1]
 
     def __init__(self, screen, start_x):
         self.__start_x = start_x
@@ -50,6 +53,20 @@ class Board:
             self.changed_rects.extend(self.__tetromino.rects)
 
         self.__tetromino = tetromino
+
+    @property
+    def tetromino_next(self):
+        return self.__tetromino_next
+
+    @tetromino_next.setter
+    def tetromino_next(self, tetromino_next):
+        if tetromino_next is not None:
+            self.changed_rects.extend(tetromino_next.rects)
+
+        if self.__tetromino_next is not None:
+            self.changed_rects.extend(self.__tetromino_next.rects)
+
+        self.__tetromino_next = tetromino_next
 
     @property
     def tetromino_hold(self):
@@ -84,11 +101,14 @@ class Board:
         self.__game_over = game_over
 
     def draw_frame(self):
-        self.__wall_bottom = pygame.draw.line(self.__screen, WHITE, (self.__start_x, self.__height), (self.__start_x + self.__width, self.__height))
+        self.__wall_bottom = pygame.draw.line(self.__screen, WHITE, (self.__start_x, self.__height),
+                                              (self.__start_x + self.__width, self.__height))
 
-        self.__wall_left = pygame.draw.line(self.__screen, WHITE, (self.__start_x-1, 0), (self.__start_x-1, self.__height))
-        
-        self.__wall_right = pygame.draw.line(self.__screen, WHITE, (self.__start_x + self.__width, 0), (self.__start_x + self.__width, self.__height))
+        self.__wall_left = pygame.draw.line(self.__screen, WHITE, (self.__start_x - 1, 0),
+                                            (self.__start_x - 1, self.__height))
+
+        self.__wall_right = pygame.draw.line(self.__screen, WHITE, (self.__start_x + self.__width, 0),
+                                             (self.__start_x + self.__width, self.__height))
 
     def move_tetromino(self, direction):
         temp_tetromino = copy.copy(self.tetromino)
@@ -119,7 +139,7 @@ class Board:
             if not self.check_collision(temp_tetromino):
                 self.tetromino = temp_tetromino
 
-    def hold(self, position):
+    def hold(self):
         if self.__can_hold:
             self.__can_hold = False
             temp_tetromino = self.tetromino
@@ -131,7 +151,7 @@ class Board:
                 self.tetromino_hold = temp_tetromino
                 self.new_block()
 
-            self.tetromino_hold.move_to(position)
+            self.tetromino_hold.move_to(self.__hold_position)
             self.changed_rects.extend(self.tetromino_hold.rects)
             self.tetromino_hold.draw(self.__screen)
 
@@ -150,12 +170,19 @@ class Board:
 
     def new_block(self):
         if not self.__tetrominos_upcoming:
+            pprint("no blocks")
             self.__tetrominos_upcoming = list(range(Tetromino.block_count()))
             random.shuffle(self.__tetrominos_upcoming)
+            self.tetromino = Tetromino.get(self.__tetrominos_upcoming.pop(0), self.__starting_position)
+            self.tetromino_next = Tetromino.get(self.__tetrominos_upcoming.pop(0), self.__next_position)
+        else:
+            pprint("have blocks")
+            self.tetromino = self.__tetromino_next
+            self.tetromino.move_to(self.__starting_position)
+            self.tetromino_next = Tetromino.get(self.__tetrominos_upcoming.pop(0), self.__next_position)
 
-        self.tetromino = Tetromino.get(self.__tetrominos_upcoming.pop(0), self.__starting_position)
-
-        self.changed_rects.extend(self.tetromino.rects)
+        pprint(self.tetromino_next.name)
+        self.tetromino_next.draw(self.__screen)
 
     def draw(self):
         self.draw_frame()
@@ -186,7 +213,7 @@ class Board:
         self.__can_hold = True
         deleted_rows = []
         for rect in self.tetromino.rects:
-            row = int(rect.y/BLOCK_WIDTH)
+            row = int(rect.y / BLOCK_WIDTH)
             rects = self.__rows.get(row)
 
             if not rects:
